@@ -1,5 +1,13 @@
 # Section 1 - Expo Setup
 
+IMPORTANT_NOTE: After Development Workstation Restart run the following command in Terminal:
+
+echo 999999 | sudo tee -a /proc/sys/fs/inotify/max_user_watches     && \
+  echo 999999 | sudo tee -a /proc/sys/fs/inotify/max_queued_events  && \
+  echo 999999 | sudo tee -a /proc/sys/fs/inotify/max_user_instances && \
+  watchman shutdown-server 
+  
+
 ## Lecture 3 - Creating React Native Apps
 
 * Expo is a new tool to develop and test react native apps
@@ -120,3 +128,50 @@ e.g <View {...this.state.panResponder.panHandlers}>
 * in the onPanResponderMove we set the position using position.setValue({x: gesture.dx, y: gesture.dy }); this is the custom animation type
 
 * we bind the animated to the View like in ball.js changing View to Animated.View and pasing the this.state.position.getLayout() is style prop
+
+# Section 4 - Applying Animation Styling 
+
+## Lecture 21 - Animating Single Cards
+
+* we will move animation tot eh List Item insside the renderCards() helper.
+* the map function provides the index as second argument. we use this to render only the first card and add a ANimated.View wrapper together witthe position and panHHandler
+* we need to assign a key to the top component of a list which now is Animated.View. we use item.id
+* the rest of cards are rendered outside the if statement without the wrapper and dont move.
+
+## Lecture 22 - How to Rotate Elements.
+
+* we want a linear relation between dx and rotation degrees
+* we start by adding one more attribute to style prop object. transform.
+in order to facilitate addition of multiple style attributes we add a helper function and we call it in style={helper()}
+* in there we expand the get.Layout() object with ... adding transform=[{rotate: '45deg'}]. this is static rotation. we want it dynamic correlated to dx.
+* we make use of React Native param interpolation using the follwoing snippet
+
+const rotate = position.x.interpolate({
+			inputRange: [-SCREEN_WIDTH * 1.5, 0, SCREEN_WIDTH * 1.5],
+			outputRange: ['-120deg', '0deg', '120deg']
+		});
+
+* in tat way we pass as input position.x adding its Range and seting the output range returning the dpendent param rotate. This is a powerful way of corelating parameters for styling and other uses. (e.g dimensions - movement)
+* we pass the rotate objecty  to trasform
+* to make use of the Screen width and not static range values we use React native Dimensions. module. we import it and set a static const 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+* we take the initiative of removing  y dimension from position.setValue({x: gesture.dx}); so we are focused on x dimension making the transition smoother
+
+## Lecture 26 - Springing Back to Default
+
+* we make use of onPanResponderRelease to invoke our helper function when user removes finger from screen 
+* we add in the helper Animated.spring function to go bat to initial postion.
+* we define a threshold  based on screen width and we add conditional logic to count like or dislikes (swipe more than threshold) or spring back to original position
+
+## Lecture 28 - Programmatic Animation
+
+* we want to implement. user drags far enough -> forcibly make card exit left or right -> get next card ready for swiping
+* to force swipe in the conditional logic we call a helper method that uses the Animated.timing method to linearly continue animation to a destination point in a certain time. the syntax is like spring but we pass a second attribute to the config object called duration:
+* we want to call a function on forceSwipeCompletion.  animation has a duration and we wan to do it after it completes. to do this we pass a callback in the start() chained function. in the callback we call a helper function
+* in the helper function we pass direction. depending on direction we call one of the callbackes passed int eh React Component as props . onSwipeLeft or onSwipeRight
+
+# Section 5 - Component Reusability
+
+## Lecture 31 - Wiring Reusable Components
+
+*
