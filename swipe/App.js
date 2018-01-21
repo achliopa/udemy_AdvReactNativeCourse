@@ -19,7 +19,7 @@ export default class App extends React.Component {
   renderCard(item){
     return (
       <Card
-        key="item.id"
+        key={item.id}        
         title={item.text}
         image={{uri: item.uri }}
       >

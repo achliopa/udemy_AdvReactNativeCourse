@@ -80,3 +80,43 @@ we create an empty project called swipe setup folder and let the tool do the set
 * We will use a library for styling . called react native elements
 * we install it with yarn add react-native-elements
 we use Card and Button from the list to style a card in renderCard function
+
+# Section 3 - Handling Gestures
+
+## Lecture 17 - The Pan Responder System
+
+* handling animation and touch events. we will use the PanResponder ReactNative Primitive. It is a Gesture System handling finger drags on screen
+* The Card animation following the gesture will be handled by Animator.
+* Gesture Sytem is an Input System. We need to know:
+** a) What are we touching
+** b) What component handles touch (which has code to understand the gesture)
+** c) how the gesture is changing (pattern to understand the gesture)
+* we import PanREsponder module by react-native
+* we create an instance of it. we can have multiple instances
+* the instance is created in constructor. a common trrend is to put the instance in the component state. this is misleading as panResponder will not make use of this.setState as it is an independent object.
+* we choose to attach panResponder to the Componet Instance (this) object as a private var.
+
+## Lecture 18 - The Pan Responder Event Handlers
+
+* we pass a number of callbacks assigned to the PanResponder Events. onStartShouldSetPanResponder is executed everytime user taps on the screen. by returning true we say that we want this evend handler to handle gesture anytime user taps. otherwise we return false. onPanResponderMove callback is called anytime user drags his finger on screen.it gets called many times. onPanResponderRelease is called when user removes his finger from screen. it is good point to put reset code.
+* the first argument we pass in these callbacks is event object like normal react handlers. the second argument is gesture object. 
+* we console.log gesture in onPanResponderMove callback to see what happens.
+* to use PanRewsponder we have to put it somewhere . tie it to a React Component.
+e.g <View {...this.state.panResponder.panHandlers}>
+* panHandlers. contains the callbacks we use so we pass them to the React Component
+* to view expo xde remote js debugger on chorem dev tools we open it on http://192.168.1.14:19001
+* to activate onPanResponderMove events we need to set onStartShouldSetPanResponder: () => true
+* we click and move to log gesture object. we see the xy params change rapidly as we swipe
+* gesture contains stateID: 0.4457703677944398, moveX: 20.32646369934082, moveY: 50.29035568237305, x0: 245.54443359375, y0: 145.05859375, …
+* gesture values are zeroed out when callback returns
+* we add debugger; statement to inspecty gesture object
+* dx dy is the distance travelled from initial touch of finger
+
+## Lecture 20 - Dragging a Card
+
+* we import Animated in Deck.js. we review the Animated code in Ball.js. We will use it to set initial position of Card and to attach it to a React Element but we will NOT use a type of transition like spring as we will move it customly following the gesture dx dx.
+* for first test we will drag whole deck of cards
+* we insert position in component.state following the rn docs. this breaks the rule to not directly mutate the component state. we should consider using this.position = position instead.
+* in the onPanResponderMove we set the position using position.setValue({x: gesture.dx, y: gesture.dy }); this is the custom animation type
+
+* we bind the animated to the View like in ball.js changing View to Animated.View and pasing the this.state.position.getLayout() is style prop
