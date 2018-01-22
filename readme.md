@@ -172,6 +172,67 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 
 # Section 5 - Component Reusability
 
-## Lecture 31 - Wiring Reusable Components
+## Lecture 31 - Writing Reusable Components
 
-*
+* we dont have a way to pass a callback function for onSwipeLeft() or onSwipeRight() because we didint know on which card wwe operate at anygiven time.
+* we add the concept of an index in the component. the logical place for this is component state. in onSwipeCallback we set the item to be passed in the callbacks from the data array based on the index stored in state
+8 when we reach the part of code that calls the callback in the simulator our app breaks as we are not passing any callback in the props
+
+## Lecture - The DefaultProps System
+
+* missing props in a component call is a common problem. we can solve it with typechecking in the code but this is a workaround
+* we will use the defaultprops system
+
+```
+	static defaultProps = {
+		onSwipeRight: () => {},
+		onSwipeLeft: () => {}
+	}
+```
+
+* we define the static object right in the class component defaulting the functions if they are not passed in
+
+## Lecture 33 - Resetting Card Position
+
+* we need to make the next card ready for swiping. we need to attach panHandler and position to the next item
+* we do this by increment the index in state after calling the callbacks 
+* before we change index we programmaticaly reset the position so when we change to next card to not auto go in awkward position
+
+## Lecture 34 - Advancing the Deck
+
+* we do this in the renderCards method. as we advance in the deck we dont wanth to render swiped cards (trurn null) also we want to attach handlers to the next card
+* we compare tthe index of map faunction withe this.state.index to implement this
+
+## Lecture 35 - Handling Empty Lists
+
+* at project inception pahse we said there will be a renderNoMoreCards Prop to be called when there are no more cards
+* we do the chen in renderCards() where we can use the data.lngth to detect we reached the last ewlement in the list
+
+## Lecture 36 - Getting the Cards to Stack
+
+* this is done with styling (CSS). we set absolute postion and width to viewport (SCREEN_WIDTH), cards are rendered 0 to max so stacked in reverse order. to ficx that we chain reverse() in map function. ANDROID has an isswue with zIndex. we solvit by reversing the z index.
+* styling properties are stacked in an array `style={[{zIndex: 99}, styles.cardStyle]}`
+
+## Lecture 37 - Troubleshoot Flashing Images
+
+* when we promote a View to Animated.View it rerenders causing the image to flash. a solution is to use only Animated.View
+
+## Lecture 38 - Cascading Card List
+
+* we use stylining and we take advantage of absolute postiion properties. we add top: 10 * i to the non swapable cards and the swapable card or we use top: 10 * (i - state.index) to move cards up while swapping
+* we implement move cards up and we add an animation to smooth it up
+* we will use simpler LayoutAnimation.
+* we import LayoutAnimation and UIManager from react-native
+* we add our animation code in a lifecycle method when we have a rerender (componentWillUpdate), there we do a fix for android
+
+```
+UIManager.setLayoutAnimationEnabledExperimental && 
+UIManager.setLayoutAnimationEnabledExperimental(true);
+```
+
+* then we set our animation (spring) with `LayoutAnimation.spring();` what we do is we use an animation style for our transition
+* when we empty our deck and get new cards with renderNoMoreCards we need to reset our index
+* we do this in compoentWillReceiveProps lifecycle method as when we get new data props change. we compare newProps with actual props and we reset the index in state.
+
+# Section 6 - OneTime Password Authentication
+
