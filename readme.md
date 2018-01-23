@@ -354,3 +354,54 @@ UIManager.setLayoutAnimationEnabledExperimental(true);
 * we import firebase admin `const admin = require('firebase-admin');`
 * we go to the console of our firebase app and click settings , then  Project Settings -> Service accouts. there we see a snippet of initialization code . we copyu the initializeApp function snippet and paste it in our index..js file. 
 * we are missing a *serviceAccount*. we click on GENERATE PRIVATE KEY and we get a json file containing our private and public key. we create anew file in functions folder named *service_account.json* and paste all the contents of the json sent to us with the credentials. WE MUST NOT INCLUDE IT IN OUR GIHUB REPO so add it in .gitignore file
+* we import serviceAccount from json file in the index.js
+
+## Lecture 53 - Sanitizing user Inputs
+
+* we will manage user accoutns using firebase authentication 
+* we will use the Anonymous Sign-in provider to have full control over acounts so we enable this option
+* inside our createUser function we will
+	 * verify user provided a phone
+	 * format the phone number removing dashes and parenthesis
+	 * create a new user account using that phone neumber
+	 * respond to the user saying the account was made
+* we import firebase-admin
+* in the function we check that phone exists in the body otherwise we return an error.
+* if it exists we coerse it into String (in case it was passed as a number bu the api consumer). and use String.prototype function replace to stip all non number characters using regex.
+* to create auser we will make use of admin and service account to access the firebase database to store data. we use admin to use service acount to use auth() to createa user in authoriazation module using the phone as uid. because createUser is async. we use proimises resolve to reprly with user data and catch to reply with error status and error message
+
+```
+	admin.auth().createUser({ uid: phone })
+		.then(user=>res.send(user))
+		.catch(err => res.status(422).send({ error: err }));
+```
+* we deploy and use postman to test. test cycle is large in firbase backend development. so use ESLint to catch bugs upfront.
+
+## Lecture 55 - Testing New user Creation
+
+* i test in postman sending:
+
+```
+{
+	"phone": "0030-69-99999999"
+}
+```
+
+* and get a response
+
+```
+{
+    "uid": "00306999999999",
+    "emailVerified": false,
+    "disabled": false,
+    "metadata": {
+        "lastSignInTime": null,
+        "creationTime": "Tue, 23 Jan 2018 22:19:58 GMT"
+    },
+    "tokensValidAfterTime": "Tue, 23 Jan 2018 22:19:58 GMT",
+    "providerData": []
+}
+```
+
+* the auth enforces uniqueness to phone as we use it as uid
+* in firebase console i see users created in authorization tab
