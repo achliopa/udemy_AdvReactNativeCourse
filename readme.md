@@ -236,3 +236,121 @@ UIManager.setLayoutAnimationEnabledExperimental(true);
 
 # Section 6 - OneTime Password Authentication
 
+## Lecture 42 - Review of Common Auth FLows
+
+* **Email/password** : send email+ password. if they match email and password in backend user authenticated
+* **OAuth** : A third party vouches for the users identity by providing an identity token to our backend
+* **2FA** : Two Factore Authentication. In addition to oauth or emai/passwd a user is sent an identifying token via text, phone or email
+* **One Time Password** :  The user provides only a phone number as an identifying token. We text him a code we text them a code that they enter in the app to prove ownership of that phone
+
+## Lecture 43 - The Details of One TIme Passwords
+
+* Simple Flow: User enters their phone number -> we text user a token -> user enters the token in our app -> we verify the token is correct -> if token is correct user is considered authenticated
+* Potential problems: a lot of time passes between the time we send the code and when user enters it in app. where we store the token.
+* We DONT WANT to send the toke in http response and let the client (device) do the authentication comparing the token with the sms token
+* Actual Flow: user Requests OTP -> Ack request -> generate code, save it in backend (Firebase) -> text user the code (Twilio) -> user sends correct code ->compare codes in backend -> send user a jwt to identify them (firebase).
+
+## Lecture 44 - Tech Stack with Google Cloud Functions
+
+* firebase has no custom code to compare codes
+* generate code is also backend. firebase how will produce codes.
+* we could use express for backend. our tech stack is:
+	* React Native: Show user the form to sign up and sign in via one time password
+	* Twilio: Send Text messges to users
+	* Firebase: store user data, including user accounts and correct one time password codes
+	* Google Cloud Functions: Timy bits of code that run one time on demand. Has access to data in firebase
+* Google Cloud Functions are stored in firebase and are equal to AWS Lambda
+
+## Lecture 45 - Traditional Servers vs Google Clooud Functions
+
+* generate code and comparing codes is insecure to do in client.
+* **Traditional Server**:
+	* Long Running Process
+	* Runs on *decicated* machinery
+	* Code organized using libraries , frameworks
+	* Single server does many,many different things
+	* Request routed internally
+	* Multiple Requests -> One Router _> Multiple Controllers
+* **Serverless Computing**
+	* Extremely short lived process (20ms to 3000ms)
+	* Run on ??? machinery
+	* Code is organized in *functions*
+	* Functions do exactly on thing
+	* Requests directed externally to a specific function
+	* Multiple Requests -> Router Handled by Google, AWS -> Multiple Functions
+
+## Lecture 46 - Layout of Google Cloud Functions
+
+* **Handling a user Flow:**
+* Cloud Function #1
+	* -> User Enters email and phone
+	* 	 verify phone is not in use
+	*    create a new user record in Firebase
+	* <- respond to request, stating user was created
+* Cloud Function2
+	* -> user requests to login with phone number
+	*    generate a code
+	*	 save the code to user's record
+	* <- text the code to the user
+* Cloud Function #3
+	* -> user enters code
+	*    compare codes
+	*	 mark code as stale
+	* <- return a JWT to user
+
+## Lecture 47 - Firebase Project Setup
+
+* Setup Process: Create Firebase Project -> Setup Local Firebase Project -> Write function to create user -> Signup to Trilio -> Write function to generate and text a user
+* we create firebase project
+* we install firebase cli with `npm install -g firebase-tools`
+* we login to our firebase/google acoount we have created our project with with `firebase login`
+* we get redirected with oauth login and success.
+* we create our project folder `mkdir one-time-password` . we give tha same project name like in firbase just in case
+* we enter our root project folder
+* we initialize our project with `firebase init`
+* we select functions (with space) and then we are shown our projects to associate with. 
+* we choose not to setup a default project. we choose javascript and to install libs with npm. it creates a functions folder with node project struct.
+*  we go back to the firebase consol and choose functions
+
+## Lecture 48 - Deploying a Firebase Project
+
+* we open index.js in functions folder, uncomment the sample code and run `firebase deploy` in project root folder
+* i get error *no project active*
+* we solve it by going to firebase console copying project ID (shows in URL path)
+* we rerun command `firebase deploy --project your_project_id
+* IT DEPLOYS@!
+* we see in firebase console in functions tab the demo function *helloworld* appear
+
+## Lecture 49 - Testing Deployed Functions 
+
+* we work in local fireproject and deploy it to remote firebase project
+* when it was deployed it gave us the link for calling th function  *https://us-central1-one-time-password-3751e.cloudfunctions.net/helloWorld*
+* we visit the link and see the function output
+* we implement a second function printing goodbye. 
+* the syntax of firebase functions is similar to express route handlers. with `export.functionname = functions.https.onREquest(express style callback)`
+
+## Lecture 50 - Project File Structure
+
+* in *index.js* we export 3 google cloud functions: createUser, createPassword, verifyPassword. each one has its own .js file thats is imported in index.js
+* firebase runs in node node has no access to ES6 so we right in es5 with require etc.
+* in the separate fiule we implement the callback passed in onRequest() instead of the annonympus arrow function used in the examples
+* in the named .js file we export an anonymous function as callback
+
+## Lecture 51 - The Request and Response Objects
+
+* req and res are used as in express
+* *req.body* contains data passed from the caller. we use res.send() as a console log. to inspect it. 
+* in firebase functions ulike express we dont dspecify the http method. we can do it manually in the function
+* in order to see the req. body we need to send data with post request in postman
+* we see that we echo the json raw data we sent.
+* functions in firebase can persist data to the firebase database as they are tightly coupled in the project.
+* the project is structured with datastore<->service client<->functions
+* with service client we can manipulate the project  oveeriding rules
+
+## Lecture 52 - Generating a Service Account (Setting Service Client)
+
+* we need to directly acces our datastore data from the function
+* we clean up code in index.js
+* we import firebase admin `const admin = require('firebase-admin');`
+* we go to the console of our firebase app and click settings , then  Project Settings -> Service accouts. there we see a snippet of initialization code . we copyu the initializeApp function snippet and paste it in our index..js file. 
+* we are missing a *serviceAccount*. we click on GENERATE PRIVATE KEY and we get a json file containing our private and public key. we create anew file in functions folder named *service_account.json* and paste all the contents of the json sent to us with the credentials. WE MUST NOT INCLUDE IT IN OUR GIHUB REPO so add it in .gitignore file
