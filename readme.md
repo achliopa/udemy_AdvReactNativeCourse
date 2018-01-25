@@ -405,3 +405,83 @@ UIManager.setLayoutAnimationEnabledExperimental(true);
 
 * the auth enforces uniqueness to phone as we use it as uid
 * in firebase console i see users created in authorization tab
+
+# Section 7 - Twilio Integration
+
+## Lecture 56 - Texting from Twilio
+
+* we go to twilio.com
+* we signup and go to dashboard
+* we need to register a (virtual phone number to be used for texting back by our users (if they text back to the sms we send))
+* we click all products and services -> phone numbers -> get started -> get your first twilio phone number => chose this number (we right downn the number it gives us)
+* we go to </> developers tools -> runtime -> API Explorer -> Programmable SMS -> Messages -> POST /Accounts/[AccountsId]/messages  (Create A message)
+* in to we enter our phone and from the phone given byu twilio . in body our test message (choose a US number)
+
+## Lecture 57 - Twilio Credentials
+
+* our flow to implement is: find the user model->generate code->save code to user -send text message via twilio api -> respond to request
+* we make a new file in functions folder called twilio.js with configurations for the service. we will use their node.js npm module so we install it in /functions folder with ` npm install --save twilio@3.0.0-rc.13`
+* we import the lib in twilio.js and define 2 const *acount Sid* and *authToken* we need for our Api call.
+* i go to twilio console dashboard to copy paste these 2 values, i insert them preferably in a gitignored separate file.
+* we export a new Twilio instance passing the 2 tokens.
+
+## Lecture 58 - Accessing Saved users
+
+* we create a new js file to host our callback function that will be exported as google cloud function in index.js file. we call it request_one_time_password
+* in our callback we chck that a phone xists in request.body , we sanitize it (exactly like *createUser*), and we use firebase-admin to `admin.auth().getUser(uid)` where id is the phone as we implemented in createUser. this is an async call so in resolve (.then) we will prepare the text.
+* to hit external apis from google cloud functions we need a paid account (blaze plan).
+* we will change the app flo storing the code in the user record after we send th e code to twilio. this is because we can avoid phone validation in this way which consts processing power. 
+* twilio does not support promises . only callbacks
+* twilio wants the +304338943 format for foreign numbers. so regex needs to change to allow +.
+*eslint rule that asks then to return something creates problems. we disable it.
+*  we import twilio in our callback request one time password callback
+*firebase auth and database module are unrelated. auth module does not allow saving custom data . we need to cr4eate records in database. instead of auth() we use database() to access the database. like in node projects. we need a ref to the record and an update() chained func with the object contianing the data we want to store. 
+as we said we store int he callback we write to return when the call to twilio api concludes.
+
+```
+twilio.messages.create({
+				body: "Your Agileng OTPApp login code is " + code,
+				to: phone,
+				from: " +16178556875"
+			}, (err) => {
+```
+
+* twilio is the instance we created in twilio.js witht he tokens passed.
+we test in postman.
+
+## Lecture 62 - Verifying One Time Passwords
+
+* we create the callback and add it to the index.js exports
+* we expect to see phone number and code in the req.body, if not we return error message.
+* we parse the code as in with parseInt. we format the phone (dont forget international numbers with +)
+* we fetch the user from auth() module based on phone. if it resoves then we go to the database module and with ref to user/:phone we fetch the data with .once (not .on() because on listens to changes in data and needs to de deactivcated with .off())
+
+```
+ref.once('value', snapshot => {
+	const user = snapshot.val();
+	})
+```
+
+* is equivalent to 
+
+```
+ref.on('value', snapshot => {
+	ref.off();
+	const user = snapshot.val();
+	})
+```
+
+* withe data we get from snapshot we compare the code in db witht he code sent via post request and we check if code is stale. we invalidate the code and proceeed) 
+
+## Lecture 63 - generating JWTs
+
+* if we choose the fully custom path for authentication in firebase we need to gemerate the token ourselves
+* we generate the jwt and send it back to the user
+* we do this with `admin.auth().createCustomToken(phone);
+* we return the token to the user on resolve of the promise thrown by the call `.then(token => res.send({token}))`
+
+# Section 8 - Client Side One Time Passwords
+
+## 
+
+*

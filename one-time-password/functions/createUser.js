@@ -5,8 +5,11 @@ module.exports = function(req,res) {
 	if (!req.body.phone) {
 		res.status(422).send({error: 'Bad Input'});
 	}
-	// format the phone number removing dashes and parenthesis
-	const phone = String(req.body.phone).replace(/[^\d]/g,"");
+		// format the phone number removing dashes and parenthesis
+	// const phone = String(req.body.phone).replace(/[^\d]/g,"");
+	
+	//twilio needs + character to work with foreign numbers
+	const phone = String(req.body.phone);
 	// create a new user account using that phone neumber
 	admin.auth().createUser({ uid: phone })
 		.then(user=>res.send(user))
