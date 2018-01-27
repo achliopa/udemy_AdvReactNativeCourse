@@ -482,6 +482,33 @@ ref.on('value', snapshot => {
 
 # Section 8 - Client Side One Time Passwords
 
-## 
+## Lecture 66 - App Boilerplate
 
-*
+* we create a new firebase-auth react native project with expo
+* we install with yarn *axios* for api calls to backend and *react-native-elements* for styling. 
+* we create a folder components and in there a SignUpForm.js file for a class Component
+
+## Lecture 67 - Defining Instance Properties
+
+* to wire our form input we will use component state where we store the phone. 
+* in react native form inputs numbers are parsed as strings.
+* we use ES6 (2017) syntac to initialize state without the need for the constructor. also we syntax our event handler function as an arrow removing the need to use bind(this) when we attach it to the event.
+
+fot input we use the onChangeText event to store in state the input at any text change. this means we need to attach the value to the state. 
+
+## Lecture 68 - Invoking CLoud Functions
+
+* we use axios which we import. we find the url to our funcions in google firebase console
+
+* we chain th epromises to invoke two consequticve calls to firebase
+
+## Lecture 69 - Refactoring with Async/Await
+
+* nothing new. he uses async/await
+
+## Lecture 71 - User Sign-In
+
+* we make a new form to call verifyOneTimePassword . it is almost the same with SinUp nothing new. firebase exprects unique users
+* when we do thiw request we get back a jwt token as we saw in postman
+* we import firebase in project with yarm
+* we initialize firebasse connection with code from firebase console in a lifecicle method of the App.js (componentWillMount). then we use firebase `firebase.auth().signInWithCustomToken(data.token);` with the object we get in response. from verify google cloud function. in async/await
