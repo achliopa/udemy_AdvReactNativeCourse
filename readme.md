@@ -512,3 +512,101 @@ fot input we use the onChangeText event to store in state the input at any text 
 * when we do thiw request we get back a jwt token as we saw in postman
 * we import firebase in project with yarm
 * we initialize firebasse connection with code from firebase console in a lifecicle method of the App.js (componentWillMount). then we use firebase `firebase.auth().signInWithCustomToken(data.token);` with the object we get in response. from verify google cloud function. in async/await
+
+# Section 9 - Bringing it All Together
+
+## Lecture 75 - App Overview
+
+* we create a new project named jobs in  expo xde
+* it will be a job finding app.  we will start with a landing page. with instructions. then we will have a signup screen to login with facebook. after a screen to set our position in a mapview. based on the position we will hit a backend api to retrieve a list of jobs nearby which will be rendered in a swipe list. the user will keep the ones he likes by swiping right. the shortlist will be accessible by a button. in the shortlist will have a button for apply. another screen will give the option to reset the list (clear it).
+* the welcome page: we only show the page once (when the user first enters the app, each page should fill up the whole screen, only one page should be visible at a time, text on each one page should be cofigurable
+* facebook authentication page: we only show the page if the user is not logged in
+* set position on map page: map needs to work both on io and android,need to be able to read current location from the map when the user taps on button, need an api to fetch list of jobs based on location,need to show bottom tab bar on the screen, but not the welcome or login screen
+* swipe/rate jobs screen: fetch a list of jobs in the area that was designated from last screen, use swipDeck component from swipe project to show a list of jobs, if a user likes a job show it on the list of saved jobs (next screen)
+* saved jobs list: need to only show jobs that the user has liked, need a link to a job application page from each 'liked' job, need to be able to do some nested navigation (open the settings screen)
+* solving challenges: facebook authentication-> expo, show map on android and ios -> expo, push notifications -> expo, app loading screen -> expo, swipe deck -> already there from swipe app, fetch job data -> indeed job api, navigation -> react navigation
+
+## Lecture 79 - Screens vs Components
+
+* We have: WelcomeScreen, AuthScreen, MapScreen, DeckScreen, ReviewScreen, SettingsScreen, Screens are React Navigation Elements ans contain React Native Components. they can contain more than one components. Screeens are still React Components. Screens are one off. they are not meant to be reusable. 
+* Navigation between Screens can be done with one of the many React Native Navigation options (NavigatorIOS, Navigator, Navigator Experimental - ReactNative Router Flux, React Router Native, React Navigation, React native Router)
+* Most Popular Libraries are React Router Native which is the React.js React Router port to Native . check if api is stable before binding to this. also it uses url type paths like in web. React Navigation is the official Facebook lib so it is pretty backed.
+* we will use React Navigation in the project
+
+## Lecture 81 - React navigation in Practice
+
+* The nav flow: WelcomeScreen -> AuthScreeen -> (MainFlow: MapScreeen, DeckScreen,(ReviewFlow: ReviewScreen<->SettingsScreen))
+* There are 3 types of navigation: 
+	* Stack: we want a header. good when we want to go *forward* or *back* between views (e.g ReviewScreen - SettingsScreen )
+	* Tab: we want a bottom bar(optional). good when we want to show either view a or view b (e.g mapScreen, DeckScreen, ReviewScreen)
+	* drawer: we want a side bar. good when we want either view a or b
+* We will use tab navigation for the first screens as well welcome-auth-main but we will hide the footer
+
+## Lecture 82 - Screen BoilerPlate
+
+* install react navigation lib : yarn add react-navigation
+* we create files for each screen and add boilerplate code in folder screens. the boilerplate code is a typical React Class Component with react-native elements in render. we copy paste same boilerplate code in all.
+
+## Lecture 83 - Implementing the first Navigator
+
+* we start the app in expo using simulator
+* we import the TabNavigator from react-navigation in the App.js (main app js file)
+* we import our first two screens (welcome and auth) in App.js
+* in App render function we instantiate a TabNavigator under the name MainNavigator. we pass as argument a routes objects which are defined as key value pairs. the key is the name by which we call them in our code and the value is the type (screen and the Screen Component to be called.)
+* we call MainNavigator as a React  Component in our jsx 
+* we remove align and justify from default styling  and then the tab navigator appears on screen with the two screens. In android the tab is on top in ios in bottom
+
+## Lecture 84 - Nesting Navigators
+
+* down the path we will learn to add custom tab names that are different from the keys 
+* nesting navigators is a straightforward process as we follow the navigation flow we defined in our design earlier in a navigation object. instead of adding a screen object as a key-value pair, we add a navigator (Tab or Stack) passing again the navigation object with key value pairs of screen components. for our app the finished navigator object looks like
+
+```
+    const MainNavigator = TabNavigator({
+      welcome: { screen: WelcomeScreen },
+      auth: { screen: AuthScreen },
+      main: {
+        screen: TabNavigator({
+          map: { screen: MapScreen },
+          deck: { screen: DeckScreen },
+          review: {
+            screen: StackNavigator({
+              review: { screen: ReviewScreen },
+              settings: { screen: SettingsScreen }
+            })
+          }
+        })
+      }
+    });
+``` 
+
+* this navigation seems to work in tutors ios emulator but in android emulator nested navigation tab does NOT WORK. to fix this we add option objects together with the routes objets in the two tabnavigators adding lazyloading.
+
+```
+  render() {
+    const MainNavigator = TabNavigator({
+      welcome: { screen: WelcomeScreen },
+      auth: { screen: AuthScreen },
+      main: {
+        screen: TabNavigator({
+          map: { screen: MapScreen },
+          deck: { screen: DeckScreen },
+          review: {
+            screen: StackNavigator({
+              review: { screen: ReviewScreen },
+              settings: { screen: SettingsScreen }
+            })
+          }
+        }, {
+          tabBarPosition: 'bottom',
+          lazyLoad: true
+        })
+      }
+    }, 
+    {
+      tabBarPosition: 'bottom',
+      swipeEnabled: false,
+      lazyLoad: true,
+      animationEnabled: false
+    });
+```
