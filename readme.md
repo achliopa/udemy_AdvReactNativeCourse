@@ -610,3 +610,81 @@ fot input we use the onChangeText event to store in state the input at any text 
       animationEnabled: false
     });
 ```
+
+## Lecture 86 - Class vs Instance Properties
+
+* whenever a router wants to show a screen component it asks it if it has any route configuration to return
+* we specify route specific configuration using the class properties.
+when we defined state in the Component class instead of using the state initialization in the constructor
+* this definition style (like a OO class variable) is an instance property. anytime we instantiate the class this property will exist and have the defined value
+* class property definition is similar. same syntax but we add the word static infront. if we refer to it at a class instance . it will return undefined. but if we refer to it by the class it will return its value.
+
+* instance property
+
+```
+class ReviewScreen {
+	color = 'red';
+}
+
+const screen = new ReviewScreen();
+screen.color; // red
+```
+
+* class property
+
+```
+class ReviewScreen {
+	static color = 'red';
+}
+
+const screen = new ReviewScreen();
+screen.color; // undefined
+ReviewScreen.color; // red
+```
+
+* the navigator asks for the screens class properties `static navigationOptions = {}`
+it uses them for customizing the route
+
+## Lecture 87 - Customizing with Header Options
+
+* using the class level properties at ReviewScreen we will customize the Header apearance setting a title attribute in the navigationOptions class property object. the title apears in the header, also it changes the tab title of the screen
+* this is a proff that this object is used by the stacknavigator(header) and the tabnavigator (footer)
+* we want to place a button on the header. we do so by addng a second attribute *headerRight*. passing jsx value
+
+## Lecture 88 - Programming Navigation
+
+* to add a button in  the header we will use a button from react native elements library. we  install it with yarn. we import Buttton in our file
+* we add a dummy eventhandler on onPress event  of the button passing an arrow function
+* to be able to do something in the event handler callback we need to pass a parameter . we neet the navigate method of the navigation object passed. to use it we refactor our class property navigationOptions into a class method. a callback that will return the object and use the navigation object passed to use its navigate method in the event handler. to navigate somewhere we pass in the the function the key of the screen we want to go to ("settings")
+
+```
+	static navigationOptions = ({ navigation }) => {
+ 		return {
+     		title: 'Review Jobs',
+     		headerRight: (
+         		<Button title='Settings' onPress={() => navigation.navigate('settings')} />
+        	)
+     	};
+ 	}
+```
+
+## Lecture 89 - Styling the Navbar
+
+* we do styling with react native syntax of css. we do it directly in the props, to add extra margin in the header in android we import Platform from react-native and we add a style object after the class property object attributes. there we query the Platform and we add the margin with a ternary `marginTop: Platform.OS === 'android' ? 24 : 0`
+
+## Lecture 90 - The Welcome Screen
+
+* welcome screen will pass a list of slide data to a component called Slides for rendering
+* slides react class component is a boilerplate. in welcomescreen we replace jsx with Slides passing a const raay of text objects.
+* we will use react native scrollview to scroll horizontally. this is done by a prop
+* we use arenderhelper method to render all data array elements using a map function.
+* at each slide jsx we use a view and text react native primitives. both are styled by an external styling object. the view is using flex to cover vertical axis and context is centered using flex. we see that text is blending in screen so we give the view a width of screen_vierw which we calculate using react native dimensions object and get('window').width method. we add pagingEnabled prop in ScrollView to do pagination on vertical axis. 
+* we pass background color as a second data array object attribute and we cascade styles in props as an array in the style prop. we style the text.
+
+## Lecture 93 - navigating from the Welcome Screen
+
+* we want to hide the tabnavbar in welcome screen
+* we want to add logic in our render helper to show the button for auth in our last slide
+* if i click the button i call a callback in welcome screen to decide what to do.
+* this is done to make slides reussable component.
+* the logic is added in a nested render helper. we use it to render a primitive button with aprop of raised. in this button we pass an event handler callback from the Slides component props. this callback is defined in WelcomeScreen. there we do navigation to the authScreen by using the navigation prop. navigation prop is passed to all React natyive components rendered by the react navigation library. in the ReviewScreen we could not do it because we were inside a class propery. class properies do not have access to props which belong to the instances. we use the navigate method passing the key to the screen *auth*
