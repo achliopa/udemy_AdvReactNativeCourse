@@ -688,3 +688,124 @@ it uses them for customizing the route
 * if i click the button i call a callback in welcome screen to decide what to do.
 * this is done to make slides reussable component.
 * the logic is added in a nested render helper. we use it to render a primitive button with aprop of raised. in this button we pass an event handler callback from the Slides component props. this callback is defined in WelcomeScreen. there we do navigation to the authScreen by using the navigation prop. navigation prop is passed to all React natyive components rendered by the react navigation library. in the ReviewScreen we could not do it because we were inside a class propery. class properies do not have access to props which belong to the instances. we use the navigate method passing the key to the screen *auth*
+
+# Section 10 - Facebook Authentication
+
+## Lecture 95 - Facebook Auth Flow
+
+* user starts app => (have they loggeed in before)? send them to map screen : send them to welcome
+* call expo.loginWithReadPermissionsAssync -> facebook popup displayed to user -> user enters details -> our app gets a token if auth was successful -thats it!
+* we nedd to register our app to use the facebook api
+* we go to expo.io then to the docs then SDK API REFERENCE then Facebook, we see the instructions on how to use facebook api
+* we go to developers.facebook.com we click get started we use our fb account and give the app a name and get in the dashboard and get an appid
+* then we registter our app with facebook
+* we copy the bundle id from expo docs and go to fb dashboard _> settings -> add platform -> ios and cp the id to the bundleid input
+* we add a second platform -> android . we cp the keyhash from expo docs to fb dashboard
+* we click save changes. we copu the app id as well use it later 985051181671730
+* we go to AuthScreen.js the  token we want to get back from auth will be used bu all pieces of our app. this is a redux usecase after all
+
+## Lecture 97 - Redux Setup
+
+* we use redux to keep the token and inform components if we have it or not
+* our flow becomes : land on AuthScreen -> Call ActionCreator to initiate FB login -> Are we sure we aren't authenticated? -> yes we are not -> attempt to log in user with FB -> get token -> save token for future use -> send use to MapScreen : If we are authenticated send them to MapScreen
+* we install redux with yarn: yarn add reduc react-redux redux-thunk
+* we add redux to our project following the usual process. provider and passing the store in App.js
+* we create the stoe in a different folder /store passing thunk as middleware and reducer in a different folder /reducer passing a dummy reducer. auth
+* we connect the storte to our app through provider
+
+## Lecture 98 - Using Async Storage
+
+* our implmentation flow for FB Login Action Creator will be. See if token exists => NO? => open FB Login => wait for token => wait for token => save token to AsyncStorage => Dispatch FB_LOGIN_SUCCESS  yes? Dispatch FB_LOGIN_SUCCESS
+* we create a new action type in a new folder /actions
+* AsyncStorage is a memory to persist info in nattive react apps. w eimport this module from react native to use it in action creator facebookLogin that will do the login
+* async storage works with key value pairs like the local storage in the web browser. we use two functions
+
+```
+AsyncStorage.setItem('fb_token', token);
+AsyncStorage.getItem('fb_token');
+```
+
+* it is an async call, it returns a promise. also fb login is async and returns a promise. we are dealing with nested promises. we will use ES7 async/await syntax
+* we use let for the values returned by await
+* async action creators use redux thunk or redux promise
+* redux thunk with async/await is crazy mix. we see the refactoring process
+
+```
+export const facebooklogin = () => {
+	let token = await AsyncStorage.getItem('fb_token');
+	if (token) {
+		// Dispatch an action saying FB login is done
+	} else {
+		// Start up FB login process
+	}
+};
+```
+
+```
+export const facebooklogin = () => {
+	return async function(dispatch) {
+		let token = await AsyncStorage.getItem('fb_token');
+		if (token) {
+			// Dispatch an action saying FB login is done
+		} else {
+			// Start up FB login process
+		}
+	}
+};
+```
+
+```
+export const facebooklogin = () => {
+	return async (dispatch) => {
+		let token = await AsyncStorage.getItem('fb_token');
+		if (token) {
+			// Dispatch an action saying FB login is done
+		} else {
+			// Start up FB login process
+		}
+	}
+};
+```
+
+```
+export const facebooklogin = () => async (dispatch) => {
+		let token = await AsyncStorage.getItem('fb_token');
+		if (token) {
+			// Dispatch an action saying FB login is done
+		} else {
+			// Start up FB login process
+		}
+
+};
+```
+
+## Lecture 100 - Loggin with Facebook
+
+* we import Facebook from expo library
+* we implement facebook login in a separate helper method
+* we pass it the dispatch method as we want to dispatch actions
+* we call Facebook.logInWithReadPermissionsAsync(appId, options) method passing the AppId as a string and an options object wit the permissions array. with async/await
+* this function returns result containing the type and token. if type is 'cancel' we dispactch login fail action type. if it is other we use AsyncStorage to se tthe token to persist memory and dispatch successful login
+* we wire the action creator to our AuthScreen using connect helper wrapper
+* our action creator is a named export. we use index.js in our actions folder to export all from auth_actions file.
+* we add a lifecycle method componentDidMount() to call the actioncreator from props.
+* we add hardcoded code in AuthScreen to remove the fb_toke for testing purposes. we use AsyncStorage.removeItem() method passing the token name
+* WE NOTICE STRANGE BEHAVIOUR. we see that when we open the app we are shown the login fb screen even we are clearly in the Welcomesreen and not in the AuthScreen
+* When React Navigation renders a Navigator it renders every single screen we pass in It!!!!!!!!!!!!!! THis is done for performance. It eagerly loads screens to improve app speed. WE DONT WANT THAT.
+* To solve this we will pass configuration options to the initial TabNavigator. we need to pass lazu: true in the config object
+* we revert to beta.22 as currently lazy-loading does not work. we need to use react-navigation-0utils if we use current version. fixed
+* we want to hide the tabBar for the root navigation so we add 
+
+```
+      navigationOptions: {
+        tabBarVisible: false
+      },
+```
+
+in the configuration option
+
+## Lecture 104 - Auth Reducer
+
+* we will use a reducer to watch for facebook login outcome and store the token . we will bind the state to the props and in the component we will forcibly navigate id props change (token)
+* we add an auth_reducer file and import it to index.js. success will return a token from the action.payload.
+* we use mapStateToProps in Auth Screen to use the token from state in our component. we create ahelper function where we check the token and if it exists we redirect using the navigate methd to maps. we put this helper in a lifecyclemethod componentWillReceiveProps which is triggered everytime the component receives new props.
