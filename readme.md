@@ -808,4 +808,13 @@ in the configuration option
 
 * we will use a reducer to watch for facebook login outcome and store the token . we will bind the state to the props and in the component we will forcibly navigate id props change (token)
 * we add an auth_reducer file and import it to index.js. success will return a token from the action.payload.
-* we use mapStateToProps in Auth Screen to use the token from state in our component. we create ahelper function where we check the token and if it exists we redirect using the navigate methd to maps. we put this helper in a lifecyclemethod componentWillReceiveProps which is triggered everytime the component receives new props.
+* we use mapStateToProps in Auth Screen to use the token from state in our component. we create a helper function where we check the token and if it exists we redirect using the navigate methd to maps. we put this helper in a lifecyclemethod componentWillReceiveProps which is triggered every time the component receives new props.
+
+## Lecture 107 - Advancing the Welcome Screen
+
+* we want the app to skip the welcome screen when the user is logged in. but as AsyncStorage functions are async in nature we dont know how log it will take to return the token from storage.we will use the AppLoading module from expo so that the user will see an app loading screen till the token is resolved. this module will render from welcomescreen. to trigger the redirection on finish we can use redux and action creators or react component state. 
+* we will use the simple solutions for learning purposes
+* we install lodash with yarn to help us with comparisons
+* our flow in welcome screen is the follwoing. we initialize state with null token.
+* we add a lifecyclemethod componentWillMount where getthe token from AsyncStorage. as this is async we use async await. if we get  a token re navigate to maps (and set token in state ) if we dont we set token to false.
+* in render method we check if token is null if it is we show welcomescreen (wait till asyncstorage resolves) if token is not null (false) we go to slides. as app stacks in AppLoading if when it get the token from storage we as a setstate token even if we get a token from storage
