@@ -818,3 +818,27 @@ in the configuration option
 * our flow in welcome screen is the follwoing. we initialize state with null token.
 * we add a lifecyclemethod componentWillMount where getthe token from AsyncStorage. as this is async we use async await. if we get  a token re navigate to maps (and set token in state ) if we dont we set token to false.
 * in render method we check if token is null if it is we show welcomescreen (wait till asyncstorage resolves) if token is not null (false) we go to slides. as app stacks in AppLoading if when it get the token from storage we as a setstate token even if we get a token from storage
+
+# Section 11 - MapViews on ReactNative
+
+## Lecture 109 - Showing a Map
+
+* Challenge: map needs to wqork both on android and ios, need to be able to read current location tfrom the map when user presses the button, need an api to fetch alist of jobs based on location, need to show bottom tab bar on this screen but ton the welcome or login screens
+* we got to go to expo.io docs in mapview section
+* we import MapView from expo in our MapScreen we add it in our render replacing all Text tags. we style the View and mapView with flex: 1 style and we see the map render on screen
+* mapview gets as a prop a region object. any time the user drags and stops an onRegionChangeComplete event is fired. we use a handler to get the new region object and pass it again to mapview. region object contains lat, long and deltas in each direction representing zoom
+* we add component state to store region. we initialize it and pass it to mapView as a prop. as there is a possible issue of region not showing correctly until loaded we add a flag to our state mapLoaded.it starts as false. in render we check the flag and i false return a ActivityIndicator. we reset the flag on a lifecycle method componentDidMount(odd huh?)
+* indeed api key 4201738803816157
+
+## Lecture 113 - THe indeed jobs API
+
+* we use the onRegionChangeComplete event to register our handler witch get the region and set it to state. this event doesnt always fire in android
+* we go to indeed.com and create an account. we check the xml feed to issue a demo query. we see that we can specify format to json so we do it to get a json object returned. we are interested on query (keyword) location and radius
+* the search flow will be: user presses search here button -> call action creator with current region -> action creator gets list of jobs -> navigate user to swip deck
+* we create anew actions file in /actions folder (job_actions)
+* we yarn install axios to make api calls
+* we start building our action creator which returns a function with dispatch (thunk). we make use of ES7 async/await and ES^ arrow functions to make the backbone of our call. we pass in our action the region object but we see that indeed accepts only postcodes in its API. so we need to transform the lng,lat data to address.
+* we search for an npm module called latlng-to-zip. this works onl in US. we will need google geocoding to make work globally . we yarn add this package and import it
+* we call the reverseGeocoding function of the lib passing the region and returning zip. we call it with await and wrap it in a try/catch statement. 
+* we will now focus on qurying the indeed api. to form this long query we use qs npm module. it takes a javascript module and turns it into a query string. we install and import it
+* we create the query params object and a const string witht the base url. we use axios to make the api call get to teh url and we extract the data from the result putting it as payload to the action we are dispatching (type: FETCH_JOBS)
