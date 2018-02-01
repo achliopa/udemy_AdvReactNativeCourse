@@ -842,3 +842,45 @@ in the configuration option
 * we call the reverseGeocoding function of the lib passing the region and returning zip. we call it with await and wrap it in a try/catch statement. 
 * we will now focus on qurying the indeed api. to form this long query we use qs npm module. it takes a javascript module and turns it into a query string. we install and import it
 * we create the query params object and a const string witht the base url. we use axios to make the api call get to teh url and we extract the data from the result putting it as payload to the action we are dispatching (type: FETCH_JOBS)
+
+## Lecture 117 - Issuing Action Creators from MapView
+
+* we import actions in MapView. we bind them with connect helper from react-redux. we add a view insude the mapview view and add a button. we give absolute position to overlay. we add an event hadler to the button and call  the action creator passing the region. we test on emulator with success
+* we implement the jobs_reducer. there we add FETCH_JOBS action type which returns the list of jobs i the state replacing everything, we add our reducer to the combine reducers
+* we want to navigate our user to the review screen after we get the data. sp tjebest place to add the navigate code is after the dispactch action in the action creator
+* we are in redux side when all the navigation elements were called in the react side
+* we will pass a callback in the action creator called by the react component which will be called when all are ok . this callback as defined in the component has access to props and navigation object
+
+## Lecture 120 - The Deck Screen
+
+* challenge: fetch list of jobs in the area that was designated from previous screen (ok), use SwipeDeck component to show a list of jobs, if a user likes a job show it on the list of saved jobs (next screen)
+* we use connect helper and mapstatetoprops to bind the jobs to the deck screen props
+we copy paste Deck.js file from swipe project to Swipe.js in components
+* we import the Swipe component in deck screen and render it passing as data the jobs prop
+* we need to add the callbacks for Swipe (renderCard, noMoreCards)
+* for render Card we want to make a helper rendering a card with a map showing the job postiion and a box with job title, company name, days posted and a description. we will use jobtitle, company, formattedrelativetime, snippet filtering out the tags, and latitude and longitude to show a new mapview, we need an id to satisfy the Swipe component. we want to use jobkey as id.
+* we impelement the renderCard function adding styling with flex. we add MapView passing the region with lat,lng from indeed reply. we disable scrolling in props to let only swipe gesture. also we add cache when running on android to trasform map into an icon for less memory footprint
+* to solve the unique key issue in our renderCard in Swipe we pass a prop with the id atrtribute for our application. we use key interpolation to set it as key. and set a default value in the default props
+
+## Lecture 128 - Liking a Job
+
+* flow: user swipes right -> swipe component calls onSwipeRight callback with job as param -> pass the liked job to an action creator -> liked job gets stored via likes_reducer
+* onswiperight prop callback calls an arrow function calling an action creator likeJob
+* likejob just returns an action of type lie_job. we handle this action typ ein likes_reducer. 
+* we are aware that the payload of this action will contain often duplivcates. we dont want to just push them in a array. we want to be able to filter the duplicated (by jobkey?1?)
+* we will use lodash in our reducer for uniqueness checks.
+
+```
+return _.uniqBy([
+	action.payload, ...state
+], 'jobkey');
+```
+
+* the code above checks for uniqueness based on jobkey between the state aray (likes and the action payload (job) and if it is uniq it returns the new array with one more element the job)
+
+## Lecture 130 - THe Review Screen
+
+* in review screen we will render a list of liked jobs in cards with a button to apply . we will use mapstatetoprops to bind the state likedJobs into the component props
+* need to only show jobs that the user has liked, need to link to a job application page from each liked job, need to be able to do some nested navigation (open the settings screen)
+* we render a list of card using the map method on the likedJobs prop.
+* to add a button that will navigate to the url of the jobe we will use a React Native Primitive element the Linking. this module links to other apps on the mobile
