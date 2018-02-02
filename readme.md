@@ -891,3 +891,21 @@ return _.uniqBy([
 * we add tabBarIcon in each screen passing an arrow function that treturns an Icon from React Elements
 * to style the nav bar and increase its height we do it in App.js nested tab navigatio config options
 * we use headerStyle in navigationOptions to increase the header size in Android by querying Platform.OS
+
+# Section 12 - Offline Data Persistence
+
+## Lecture 141 - Push Notifications and Data Persistence
+
+* User fetches jobs => User likes some jobs => user closes the app => redux state is dumped => user reopens app => we want to show the list of jobs the user had liked
+* we want to persist  app state (redux)
+* redux flow: component renders => component calls action creator => action creator dispatches action => action flows through middleware => action hits reducers  => reducers recalculate state => state flows into components => components rerender
+* we want to modify flow like : reducers recalculate state -> state saved in AsyncStorage and state flows into components => components rerender
+* we will use a module called *redux persist* . yarn add redux-persist
+* we go to our index.js file in store folder. we import persistStore and autoRehydrate from redux-persist and AsyncStorage from react-native
+* we add autoRehydrate() as second param in createStore func call.
+* we add `persistStore(store, { storage: AsyncStorage, whiteList: ['likedJobs'] });` setting the persistStore (which state will be stored and where)
+* in likes_reducer we add REHYDRATE action type from redux-persist/contants and add it to our reducer . this type returns action..payload.likedJobs  (from persistStore) or empty array. it works (we use v4)
+* with redux-persist whenever redux stated changes it is saved in persisting memory
+* when aour app starts again: redux starts up => redux sends warmup action to all => autorehydrate middleware sees warmup action -> autorehydrate fetches data fro m asyncstorage -> autorehydrate sends action to reducers (REHYDRATE=)-> our reducer catches data from persisted state
+* if i want to dump data while usng persist (for testing) we chain purge() after persistStore()
+* BIG GOTCHA! : if i change the type of data in my state and redux state is persisted in users devices the next time they will open their updated version where we use the new type of data n away non compatible wit the old type the app will crash badly. to solve it we need to make use of advanced APi and redux-persist-migrate library to make our types backward compatible
