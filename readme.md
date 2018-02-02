@@ -909,3 +909,14 @@ return _.uniqBy([
 * when aour app starts again: redux starts up => redux sends warmup action to all => autorehydrate middleware sees warmup action -> autorehydrate fetches data fro m asyncstorage -> autorehydrate sends action to reducers (REHYDRATE=)-> our reducer catches data from persisted state
 * if i want to dump data while usng persist (for testing) we chain purge() after persistStore()
 * BIG GOTCHA! : if i change the type of data in my state and redux state is persisted in users devices the next time they will open their updated version where we use the new type of data n away non compatible wit the old type the app will crash badly. to solve it we need to make use of advanced APi and redux-persist-migrate library to make our types backward compatible
+
+# Section 13 - Push Notifications
+
+## Lecture 146 - Push Notifications Overview
+
+* we will use expo api for notifications
+* if user gives us permission we will store a expo push token in our backend and use it to send notifications to this particular device
+* when we want to send notification we send it to expo notification server who then sends it to device
+* we add code to our app to get the notification and present it to user
+
+## LEcture 147 - Registering for Push Notifications
