@@ -884,3 +884,10 @@ return _.uniqBy([
 * need to only show jobs that the user has liked, need to link to a job application page from each liked job, need to be able to do some nested navigation (open the settings screen)
 * we render a list of card using the map method on the likedJobs prop.
 * to add a button that will navigate to the url of the jobe we will use a React Native Primitive element the Linking. this module links to other apps on the mobile
+* we will put a MapView in the card. we import it in review screen
+* we add a button in  the settingsscreen to clear the liked jobs through an action creator
+* when the card in deck are all gone we add a button to direct user to the map screen. we use redirection with navigation prop passed in decks screen. as rendnernomorecards is a callback that runs in swipe we need to bind the parent function to this object
+* we want to add icons on nav buttons. in MapScreen we add navigationOptions object to be used by navigator when screen is called
+* we add tabBarIcon in each screen passing an arrow function that treturns an Icon from React Elements
+* to style the nav bar and increase its height we do it in App.js nested tab navigatio config options
+* we use headerStyle in navigationOptions to increase the header size in Android by querying Platform.OS
