@@ -920,3 +920,11 @@ return _.uniqBy([
 * we add code to our app to get the notification and present it to user
 
 ## LEcture 147 - Registering for Push Notifications
+
+Flow: check if we have a saved token in AsyncStorage => prompt user for permission to send notifications -> generate a push token -> save token to server and asyncstorage ->handle incoming requests
+* we start by creatting a new folder /services and a new file push_notifications. there we import Permissions and Notifications modules from expo. 
+* we create abd export an async arrow function where. a) we get the pushToken from AsyncStorage. if there is no token, we make an asybc call with await to Permissions.askAsync(Permnissions.REMOTE_NOTIFICATIONS) to see if our app has permission for remote notifications. if the status is granted get get a token from Notifications.getExpoPushTokenAsync() and sent it to our remote service which calls expo nottifications service. then we set it to ur async storage. 
+* in the main App.js we import the push_Notification export function and notifications from expo. in the lifecycle method componentDidMount we call the exported function and we add a Notification.listener. in it we check if the notification comming is a received one and if it contains text property and we display it with the React Native Alert module.
+* to test we go to our notification remoteserver and we publich anotification to our token. we se it in the device
+
+THATS ALL. 
